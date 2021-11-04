@@ -24,7 +24,7 @@
 
     }
 
-Task 1G:
+##Task 1G:
 
     #define ISIZE 1000
     #define JSIZE 1000
@@ -51,34 +51,8 @@ Task 1G:
 
     }
 
-Task 1G:
 
-    #define ISIZE 1000
-    #define JSIZE 1000
-    // bla bla bla main etc
-    int i, j;
-
-    for (i = 0; i < ISIZE; i++) {
-
-        for (j = 0; j < JSIZE; j++) {
-
-            a[i][j] = 10 * i + j;
-
-        }
-
-    }
-
-    for (i = 1; i < ISIZE; i++) {
-
-        for (j = 3; j < JSIZE; j++) {
-
-            a[i][j] = sin(0.00001 * a[i - 1][j - 3]);
-
-        }
-
-    }
-
-Task 2G:
+##Task 2G:
 
     #define ISIZE 1000
     #define JSIZE 1000
