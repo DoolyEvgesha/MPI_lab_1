@@ -1,3 +1,7 @@
+Start with:
+
+    mpiexec -np <num_threads> [LabBasic/Lab1g]
+
 ## Basic Task:
     #define ISIZE 1000
     #define JSIZE 1000
@@ -24,8 +28,7 @@
 
     }
 
-##Task 1G:
-
+#Task 1G:
     #define ISIZE 1000
     #define JSIZE 1000
     // bla bla bla main etc
@@ -52,8 +55,7 @@
     }
 
 
-##Task 2G:
-
+#Task 2G:
     #define ISIZE 1000
     #define JSIZE 1000
     // bla bla bla main etc
@@ -82,3 +84,5 @@
 
 Source: https://drive.google.com/drive/folders/1n1AwSxdBu9_r_iQixB8yDj1UvbOkRyDf
 Лабораторная_работа.pdf
+
+P.S. in case I complete it and it helps you, you owe me a beer :)

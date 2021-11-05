@@ -7,7 +7,7 @@
 #define JSIZE 1000
 #define MASTER_RANK 0
 
-#define TAG_PLACE 1
+#define TAG_ROW_NUM 1
 #define TAG_ARRAY_ELEMENT 2
 #define TAG_STOP 3
 
@@ -49,20 +49,20 @@ void computeCycleMaster(double **a, int numThreads) {
     int rowNum;
     for (int i = 0; i < numThreads - 1; i++) {
         // send to all slave threads
-        MPI_Send(&i, 1, MPI_INT, i + 1, TAG_PLACE, MPI_COMM_WORLD);
+        MPI_Send(&i, 1, MPI_INT, i + 1, TAG_ROW_NUM, MPI_COMM_WORLD);
         MPI_Send(a[i], JSIZE, MPI_DOUBLE, i + 1, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
     }
 
     for (int i = numThreads - 1; i < ISIZE; i++) {
-        MPI_Recv(&rowNum, 1, MPI_INT, MPI_ANY_SOURCE, TAG_PLACE, MPI_COMM_WORLD, &status);
+        MPI_Recv(&rowNum, 1, MPI_INT, MPI_ANY_SOURCE, TAG_ROW_NUM, MPI_COMM_WORLD, &status);
         MPI_Recv(a[rowNum], JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
 
-        MPI_Send(&i, 1, MPI_INT, status.MPI_SOURCE, TAG_PLACE, MPI_COMM_WORLD);
+        MPI_Send(&i, 1, MPI_INT, status.MPI_SOURCE, TAG_ROW_NUM, MPI_COMM_WORLD);
         MPI_Send(a[i], JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
     }
 
     for (int i = 0; i < numThreads - 1; i++) {
-        MPI_Recv(&rowNum, 1, MPI_INT, MPI_ANY_SOURCE, TAG_PLACE, MPI_COMM_WORLD, &status);
+        MPI_Recv(&rowNum, 1, MPI_INT, MPI_ANY_SOURCE, TAG_ROW_NUM, MPI_COMM_WORLD, &status);
         MPI_Recv(a[rowNum], JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
 
         MPI_Send(&rowNum, 1, MPI_INT, status.MPI_SOURCE, TAG_STOP, MPI_COMM_WORLD);
@@ -84,7 +84,7 @@ void computeCyclesSlave(double *a) {
         for (int j = 0; j < JSIZE; j++) {
             a[j] = 10 * numRow + j;
         }
-        MPI_Send(&numRow, 1, MPI_INT, MASTER_RANK, TAG_PLACE, MPI_COMM_WORLD);
+        MPI_Send(&numRow, 1, MPI_INT, MASTER_RANK, TAG_ROW_NUM, MPI_COMM_WORLD);
         MPI_Send(a, JSIZE, MPI_DOUBLE, MASTER_RANK, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
     }
 
@@ -98,7 +98,7 @@ void computeCyclesSlave(double *a) {
         for (int j = 0; j < JSIZE; j++) {
             a[j] = sin(0.00001 * a[j]);
         }
-        MPI_Send(&numRow, 1, MPI_INT, MASTER_RANK, TAG_PLACE, MPI_COMM_WORLD);
+        MPI_Send(&numRow, 1, MPI_INT, MASTER_RANK, TAG_ROW_NUM, MPI_COMM_WORLD);
         MPI_Send(a, JSIZE, MPI_DOUBLE, MASTER_RANK, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
     }
 
@@ -112,7 +112,7 @@ void computeCyclesSlave(double *a) {
         for (int j = 0; j < JSIZE; j++) {
             a[j] = sin(0.00001 * (10 * numRow + j));
         }
-        MPI_Send(&numRow, 1, MPI_INT, MASTER_RANK, TAG_PLACE, MPI_COMM_WORLD);
+        MPI_Send(&numRow, 1, MPI_INT, MASTER_RANK, TAG_ROW_NUM, MPI_COMM_WORLD);
         MPI_Send(a, JSIZE, MPI_DOUBLE, MASTER_RANK, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
     }
 }
@@ -134,7 +134,6 @@ void computeSolo(double **a) {
 }
 
 // mpiexec -n 4 LabBasic
-//C:\Users\darya\CLionProjects\Lab1MPIBasicTask\Labs\Lab1r\lab_1r.cpp
 int main(int argc, char **argv) {
     int numThreads;
     int rank;
