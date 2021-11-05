@@ -127,10 +127,8 @@ void computeCycleMaster(double **a, int numThreads) {
 
 void computeCycleSlave(double *aRows, double *aRows_1) {
     int place;
-    int rank;
     int rowNum;
     MPI_Status status;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     while (true) {
         MPI_Recv(&rowNum, 1, MPI_INT, MASTER_RANK, MPI_ANY_TAG, MPI_COMM_WORLD, &status);

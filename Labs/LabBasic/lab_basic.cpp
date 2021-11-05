@@ -143,7 +143,6 @@ int main(int argc, char **argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &numThreads);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    printf("Number of threads = %d, rank = %d\n", numThreads, rank);
     fflush(stdout);
     // do master deeds
     if (rank == MASTER_RANK) {
