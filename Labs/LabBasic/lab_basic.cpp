@@ -48,7 +48,26 @@ void computeCycleMaster(double **a, int numThreads) {
     MPI_Status status;
     int rowNum;
     for (int i = 0; i < numThreads - 1; i++) {
-        // send to all slave threads
+        MPI_Send(&i, 1, MPI_INT, i + 1, TAG_ROW_NUM, MPI_COMM_WORLD);
+        MPI_Send(a[i], JSIZE, MPI_DOUBLE, i + 1, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
+    }
+
+    for (int i = numThreads - 1; i < ISIZE; i++) {
+        MPI_Recv(&rowNum, 1, MPI_INT, MPI_ANY_SOURCE, TAG_ROW_NUM, MPI_COMM_WORLD, &status);
+        MPI_Recv(a[rowNum], JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+
+        MPI_Send(&i, 1, MPI_INT, status.MPI_SOURCE, TAG_ROW_NUM, MPI_COMM_WORLD);
+        MPI_Send(a[i], JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
+    }
+
+    for (int i = 0; i < numThreads - 1; i++) {
+        MPI_Recv(&rowNum, 1, MPI_INT, MPI_ANY_SOURCE, TAG_ROW_NUM, MPI_COMM_WORLD, &status);
+        MPI_Recv(a[rowNum], JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+
+        MPI_Send(&rowNum, 1, MPI_INT, status.MPI_SOURCE, TAG_STOP, MPI_COMM_WORLD);
+    }
+    // for sinus
+    for (int i = 0; i < numThreads - 1; i++) {
         MPI_Send(&i, 1, MPI_INT, i + 1, TAG_ROW_NUM, MPI_COMM_WORLD);
         MPI_Send(a[i], JSIZE, MPI_DOUBLE, i + 1, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
     }
@@ -73,8 +92,6 @@ void computeCyclesSlave(double *a) {
     MPI_Status status;
     int numRow;
 
-    // receive from MASTER thread
-    // for simple computation of 10 * i + j
     while (true) {
         MPI_Recv(&numRow, 1, MPI_INT, MASTER_RANK, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         if (status.MPI_TAG == TAG_STOP) {
@@ -88,7 +105,6 @@ void computeCyclesSlave(double *a) {
         MPI_Send(a, JSIZE, MPI_DOUBLE, MASTER_RANK, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
     }
 
-    // for sinus
     while (true) {
         MPI_Recv(&numRow, 1, MPI_INT, MASTER_RANK, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         if (status.MPI_TAG == TAG_STOP) {
@@ -97,20 +113,6 @@ void computeCyclesSlave(double *a) {
         MPI_Recv(a, JSIZE, MPI_DOUBLE, MASTER_RANK, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
         for (int j = 0; j < JSIZE; j++) {
             a[j] = sin(0.00001 * a[j]);
-        }
-        MPI_Send(&numRow, 1, MPI_INT, MASTER_RANK, TAG_ROW_NUM, MPI_COMM_WORLD);
-        MPI_Send(a, JSIZE, MPI_DOUBLE, MASTER_RANK, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
-    }
-
-    // for sinus and (10 * i + j)
-    while (true) {
-        MPI_Recv(&numRow, 1, MPI_INT, MASTER_RANK, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        if (status.MPI_TAG == TAG_STOP) {
-            break;
-        }
-        MPI_Recv(a, JSIZE, MPI_DOUBLE, MASTER_RANK, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
-        for (int j = 0; j < JSIZE; j++) {
-            a[j] = sin(0.00001 * (10 * numRow + j));
         }
         MPI_Send(&numRow, 1, MPI_INT, MASTER_RANK, TAG_ROW_NUM, MPI_COMM_WORLD);
         MPI_Send(a, JSIZE, MPI_DOUBLE, MASTER_RANK, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
@@ -133,7 +135,7 @@ void computeSolo(double **a) {
     }
 }
 
-// mpiexec -n 4 LabBasic
+// mpiexec -np 4 LabBasic
 int main(int argc, char **argv) {
     int numThreads;
     int rank;
@@ -151,29 +153,19 @@ int main(int argc, char **argv) {
         double startTime = MPI_Wtime();
         //two cycles as in compute solo ones
         computeCycleMaster(a, numThreads);
-        computeCycleMaster(a, numThreads);
         double endTime = MPI_Wtime();
         double timeDiff = endTime - startTime;
-        printf("time without changing graph: %0.16f\n", timeDiff);
-
-        startTime = MPI_Wtime();
-        //one cycle for both 10 * i + j and sin
-        computeCycleMaster(a, numThreads);
-        endTime = MPI_Wtime();
-        timeDiff = endTime - startTime;
-        printf("time with changing graph: %0.16f\n", timeDiff);
+        printf("time parallel: %0.16f\n", timeDiff);
 
         ff = fopen("result.txt", "w");
         printInFile(ff, a);
         fclose(ff);
 
-        // start region solo computational area
         startTime = MPI_Wtime();
         computeSolo(a);
         endTime = MPI_Wtime();
         timeDiff = endTime - startTime;
         printf("time solo: %0.16f\n", timeDiff);
-        // end region
 
         free2DArray(a);
 
@@ -189,37 +181,3 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-//Number of threads = 2
-//time without changing graph: 0.0308983000000000
-//time with changing graph: 0.0286849000000000
-//time solo: 0.1230460000000000
-
-//Number of threads = 3
-//time without changing graph: 0.0279267000000000
-//time with changing graph: 0.0129701000000000
-//time solo: 0.1011228999999999
-
-//Number of threads = 4
-//time without changing graph: 0.0313012000000000
-//time with changing graph: 0.0127284000000000
-//time solo: 0.1231338000000001
-
-//Number of threads = 5
-//time without changing graph: 0.0397578000000000
-//time with changing graph: 0.0141880000000000
-//time solo: 0.1052784999999999
-
-//Number of threads = 6
-//time without changing graph: 0.0489594000000000
-//time with changing graph: 0.0142033000000000
-//time solo: 0.1237226000000000
-
-//Number of threads = 7, rank = 6
-//time without changing graph: 0.1680818000000000
-//time with changing graph: 0.0097112000000000
-//time solo: 0.0828555999999999
-
-//Number of threads = 8
-//time without changing graph: 0.1288778000000000
-//time with changing graph: 0.0093467000000000
-//time solo: 0.0180776000000000

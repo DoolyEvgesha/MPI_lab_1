@@ -298,7 +298,10 @@ int main(int argc, char **argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &numThreads);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    fflush(stdout);
+    if (numThreads != 6) {
+        printf("Please, use only 6 threads: 5 additional and one main thread\n");
+        exit(EXIT_FAILURE);
+    }
     // do master deeds
     if (rank == MASTER_RANK) {
         auto a = create2DArray();
