@@ -3,8 +3,8 @@
 #include <math.h>
 #include <mpi.h>
 
-#define ISIZE 10000
-#define JSIZE 10000
+#define ISIZE 1000
+#define JSIZE 1000
 #define MASTER_RANK 0
 #define JN 5
 #define IN 4
@@ -97,7 +97,7 @@ void computeCycleMaster(double **a, int numThreads) {
     double *a20 = create1DArray(JSIZE);
 
     //sending to count sinus
-    for (int i = 0; i < ISIZE; i += 4) {
+    for (int i = 0; i < ISIZE; i += IN) {
         if (i + 7 > ISIZE )
             break;
         for (int j = 0; j < JN; j++) {
@@ -109,7 +109,6 @@ void computeCycleMaster(double **a, int numThreads) {
             MPI_Send(a[i_4 + 2], JSIZE, MPI_DOUBLE, j + 1, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
             MPI_Send(a[i_4 + 3], JSIZE, MPI_DOUBLE, j + 1, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
         }
-//        printf("[MASTER] complete i = %d\n", i);
 
         for (int j = 0; j < JN; j++) {
             MPI_Recv(&place, 1, MPI_INT, MPI_ANY_SOURCE, TAG_ARRAY_NUM, MPI_COMM_WORLD, &status);
@@ -140,8 +139,6 @@ void computeCycleMaster(double **a, int numThreads) {
                 MPI_Recv(a20, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
             }
         }
-//        printf("[MASTER] 2nd cycle i = %d\n", i);
-//        fflush(stdout);
 
         for (int j = JN; j < JSIZE; j++) {
             switch (j % JN) {
@@ -150,35 +147,39 @@ void computeCycleMaster(double **a, int numThreads) {
                     a[i + 1][j] = a2[j];
                     a[i + 2][j] = a3[j];
                     a[i + 3][j] = a4[j];
+                    break;
                 }
                 case 1: {
                     a[i][j] = a5[j];
                     a[i + 1][j] = a6[j];
                     a[i + 2][j] = a7[j];
                     a[i + 3][j] = a8[j];
+                    break;
                 }
                 case 2: {
                     a[i][j] = a9[j];
                     a[i + 1][j] = a10[j];
                     a[i + 2][j] = a11[j];
                     a[i + 3][j] = a12[j];
+                    break;
                 }
                 case 3: {
                     a[i][j] = a13[j];
                     a[i + 1][j] = a14[j];
                     a[i + 2][j] = a15[j];
                     a[i + 3][j] = a16[j];
+                    break;
                 }
                 case 4: {
                     a[i][j] = a17[j];
                     a[i + 1][j] = a18[j];
                     a[i + 2][j] = a19[j];
                     a[i + 3][j] = a20[j];
+                    break;
                 }
             }
         }
     }
-//    printf("[MASTER] DONE\n");
 
     for (int j = 0; j < JN; j++) {
         MPI_Send(&rowNum, 1, MPI_INT, j + 1, TAG_STOP, MPI_COMM_WORLD);
@@ -240,7 +241,6 @@ void computeCyclesSlave(double *aRows) {
     while (true) {
         MPI_Recv(&place, 1, MPI_INT, MASTER_RANK, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         if (status.MPI_TAG == TAG_STOP) {
-//            printf("[SLAVE] received stop\n");
             break;
         }
         MPI_Recv(aRowsPlus4, JSIZE, MPI_DOUBLE, MASTER_RANK, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
@@ -248,7 +248,7 @@ void computeCyclesSlave(double *aRows) {
         MPI_Recv(aRowsPlus6, JSIZE, MPI_DOUBLE, MASTER_RANK, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
         MPI_Recv(aRowsPlus7, JSIZE, MPI_DOUBLE, MASTER_RANK, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
 
-        for (int j = place; j < JSIZE; j += JN) {
+        for (int j = JN + place; j < JSIZE; j += JN) {
             aRows1[j] = sin(0.00001 * aRowsPlus4[j - JN]);
             aRows2[j] = sin(0.00001 * aRowsPlus5[j - JN]);
             aRows3[j] = sin(0.00001 * aRowsPlus6[j - JN]);

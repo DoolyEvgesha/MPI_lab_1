@@ -85,6 +85,7 @@ Start with:
     // write in the file
 
 Source: https://drive.google.com/drive/folders/1n1AwSxdBu9_r_iQixB8yDj1UvbOkRyDf
+
 Лабораторная_работа.pdf
 
 P.S. in case I complete it and it helps you, you owe me a beer :)
