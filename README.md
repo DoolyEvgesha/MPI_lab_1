@@ -28,7 +28,8 @@ Start with:
 
     }
 
-#Task 1G:
+# Task 1G:
+
     #define ISIZE 1000
     #define JSIZE 1000
     // bla bla bla main etc
@@ -55,7 +56,8 @@ Start with:
     }
 
 
-#Task 2G:
+# Task 2G:
+
     #define ISIZE 1000
     #define JSIZE 1000
     // bla bla bla main etc
