@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <mpi.h>
+#include <algorithm>
 
 #define ISIZE 1000
 #define JSIZE 1000
@@ -96,12 +97,15 @@ void computeCycleMaster(double **a, int numThreads) {
     double *a19 = create1DArray(JSIZE);
     double *a20 = create1DArray(JSIZE);
 
+    auto const jMax = std::min(numThreads - 1, JN);
+
     //sending to count sinus
     for (int i = 0; i < ISIZE; i += IN) {
-        if (i + 7 > ISIZE )
+        if (i + 7 > ISIZE) {
             break;
-        for (int j = 0; j < JN; j++) {
-            int i_4 = i + 4;
+        }
+        int i_4 = i + 4;
+        for (int j = 0; j < jMax; j++) {
             MPI_Send(&j, 1, MPI_INT, j + 1, TAG_ARRAY_NUM, MPI_COMM_WORLD);
 
             MPI_Send(a[i_4], JSIZE, MPI_DOUBLE, j + 1, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
@@ -110,7 +114,44 @@ void computeCycleMaster(double **a, int numThreads) {
             MPI_Send(a[i_4 + 3], JSIZE, MPI_DOUBLE, j + 1, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
         }
 
-        for (int j = 0; j < JN; j++) {
+        for (int j = jMax; j < JN; j++) {
+            MPI_Recv(&place, 1, MPI_INT, MPI_ANY_SOURCE, TAG_ARRAY_NUM, MPI_COMM_WORLD, &status);
+            if (place == 0) {
+                MPI_Recv(a1, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a2, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a3, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a4, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+            } else if (place == 1) {
+                MPI_Recv(a5, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a6, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a7, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a8, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+            } else if (place == 2) {
+                MPI_Recv(a9, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a10, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a11, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a12, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+            } else if (place == 3) {
+                MPI_Recv(a13, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a14, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a15, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a16, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+            } else if (place == 4) {
+                MPI_Recv(a17, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a18, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a19, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+                MPI_Recv(a20, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
+            }
+
+            MPI_Send(&j, 1, MPI_INT, status.MPI_SOURCE, TAG_ARRAY_NUM, MPI_COMM_WORLD);
+
+            MPI_Send(a[i_4], JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
+            MPI_Send(a[i_4 + 1], JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
+            MPI_Send(a[i_4 + 2], JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
+            MPI_Send(a[i_4 + 3], JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
+        }
+
+        for (int j = 0; j < jMax; j++) {
             MPI_Recv(&place, 1, MPI_INT, MPI_ANY_SOURCE, TAG_ARRAY_NUM, MPI_COMM_WORLD, &status);
             if (place == 0) {
                 MPI_Recv(a1, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
@@ -181,7 +222,7 @@ void computeCycleMaster(double **a, int numThreads) {
         }
     }
 
-    for (int j = 0; j < JN; j++) {
+    for (int j = 0; j < jMax; j++) {
         MPI_Send(&rowNum, 1, MPI_INT, j + 1, TAG_STOP, MPI_COMM_WORLD);
     }
 
@@ -298,8 +339,8 @@ int main(int argc, char **argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &numThreads);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    if (numThreads != 6) {
-        printf("Please, use only 6 threads: 5 additional and one main thread\n");
+    if (numThreads < 2 || numThreads > (JN + 1)) {
+        printf("Why are you doing this?\n");
         exit(EXIT_FAILURE);
     }
     // do master deeds

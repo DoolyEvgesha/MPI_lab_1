@@ -3,8 +3,8 @@
 #include <math.h>
 #include <mpi.h>
 
-#define ISIZE 1000
-#define JSIZE 1000
+#define ISIZE 4000
+#define JSIZE 4000
 #define MASTER_RANK 0
 
 #define TAG_ROW_NUM 1
@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
         double timeDiff = endTime - startTime;
         printf("time parallel: %0.16f\n", timeDiff);
 
-        ff = fopen("result.txt", "w");
+        ff = fopen("result_basic_parallel.txt", "w");
         printInFile(ff, a);
         fclose(ff);
 
@@ -166,6 +166,10 @@ int main(int argc, char **argv) {
         endTime = MPI_Wtime();
         timeDiff = endTime - startTime;
         printf("time solo: %0.16f\n", timeDiff);
+
+        ff = fopen("result_basic_solo.txt", "w");
+        printInFile(ff, a);
+        fclose(ff);
 
         free2DArray(a);
 

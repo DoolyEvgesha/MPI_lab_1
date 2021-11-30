@@ -91,7 +91,7 @@ void computeCycleMaster(double **a, int numThreads) {
             } else if (place == 2) {
                 MPI_Recv(a3, JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD, &status);
             }
-            MPI_Send(&j, 1, MPI_INT, j + 1, TAG_ARRAY_NUM, MPI_COMM_WORLD);
+            MPI_Send(&j, 1, MPI_INT, status.MPI_SOURCE, TAG_ARRAY_NUM, MPI_COMM_WORLD);
             MPI_Send(a[i - 1], JSIZE, MPI_DOUBLE, status.MPI_SOURCE, TAG_ARRAY_ELEMENT, MPI_COMM_WORLD);
         }
         for (int j = 0; j < jMax; j++) {
